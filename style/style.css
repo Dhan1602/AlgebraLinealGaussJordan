@@ -31,6 +31,7 @@ body {
     box-shadow: 41px 41px 82px #141414,
         -41px -41px 82px #1a1a1a;
     padding: 10px;
+    margin-bottom: 80px;
 }
 
 #fullContent h1 {
@@ -127,6 +128,39 @@ body {
     border: 1px solid var(--highligthColor);
 }
 
+#tarjetas{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.card{
+    width: 90%;
+    padding: 18px;
+    background: #25292b;
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+footer{
+    margin-top: 150px;
+}
+
+.matrix-container {
+    text-align: center;
+}
+.matrix {
+    display: grid;
+    gap: 10px;
+    margin-top: 10px;
+}
+.cell {
+    width: 60px;
+    height: 60px;
+    background-color: #3D3D3D;
+    border-radius: 8px;
+}
 
 
 /* Checkbox */

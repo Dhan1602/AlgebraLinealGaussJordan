@@ -207,19 +207,21 @@ function luFactorizacion(A) {
 }
 
 // Matriz de Cofactores
-
 function cofactorMatrix(A) {
-    let n = A.length;
-    let cofactor = Array.from({ length: n }, () => Array(n).fill(0));
+    const n = A.length;
+    const cofactorMatrix = Array.from({ length: n }, () => Array(n).fill(0));
 
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
-            // Calcular el determinante de la submatriz
-            let minorDet = determinante(A.slice(0, i).concat(A.slice(i + 1).map(row => row.filter((_, colIndex) => colIndex !== j))));
-            cofactor[i][j] = ((i + j) % 2 === 0 ? 1 : -1) * minorDet;
+            const subMatrix = A
+                .filter((_, rowIndex) => rowIndex !== i)
+                .map(row => row.filter((_, colIndex) => colIndex !== j));
+            const detSubMatrix = determinante(subMatrix);
+            cofactorMatrix[i][j] = detSubMatrix * ((i + j) % 2 === 0 ? 1 : -1);
         }
     }
-    return cofactor;
+
+    return cofactorMatrix;
 }
 
 
@@ -303,27 +305,75 @@ function obtenerValores() {
     mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa)
 }
 
+// Mostrar en Interfaz de Usuario ------------------------------------------------------------------------------
+
+function generarCards(mensaje) {
+    document.querySelector("#tarjetas").innerHTML = ""
+    const nuevaCard = document.createElement("div");
+    nuevaCard.classList.add("card");
+    nuevaCard.innerHTML = "<span>" + mensaje + "</span>"
+    document.querySelector("#tarjetas").appendChild(nuevaCard)
+}
+
+function mostrarMatriz(matrix, titulo) {
+    // Crear el contenedor principal
+    const matrixContainer = document.createElement('div');
+    matrixContainer.classList.add('matrix-container');
+
+    // Crear y añadir el título
+    const title = document.createElement('h2');
+    title.innerText = titulo;
+    matrixContainer.appendChild(title);
+
+    // Crear la cuadrícula de la matriz
+    const matrixGrid = document.createElement('div');
+    matrixGrid.classList.add('matrix');
+
+    // Ajustar el número de columnas dinámicamente según el tamaño de la matriz
+    matrixGrid.style.gridTemplateColumns = `repeat(${matrix[0].length}, 50px)`;
+
+    // Rellenar la cuadrícula con celdas según la matriz
+    matrix.forEach(row => {
+        row.forEach(cellValue => {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.style.backgroundColor = '#3D3D3D'; // Color de celda activa
+            matrixGrid.appendChild(cell);
+            cell.innerHTML = Number.parseFloat(cellValue).toFixed(2)
+        });
+    });
+
+    // Añadir la cuadrícula al contenedor principal
+    matrixContainer.appendChild(matrixGrid);
+    document.querySelector("#tarjetas").appendChild(matrixContainer); // Añadir todo al body
+}
 
 function mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta) {
-    console.log(resultadosIncognitas.estado);
-    console.log("Determinante = " + determinanteMatriz);
+    generarCards(resultadosIncognitas.estado);
+    generarCards("Determinante = " + determinanteMatriz);
     console.log("Gauss Jordan: ");
     console.log(resultadosIncognitas.matriz);
 
     for (let i = 0; i < resultadosIncognitas.soluciones.length; i++) {
-        console.log("x" + i + " = " + resultadosIncognitas.soluciones[i]);
+        generarCards("x" + i + " = " + resultadosIncognitas.soluciones[i]);
+
     }
 
     console.log("Matriz L");
     console.log(matricesLU.L);
+    mostrarMatriz(matricesLU.L, "Matriz L")
     console.log("Matriz U");
     console.log(matricesLU.U);
+    mostrarMatriz(matricesLU.U, "Matriz U")
+
 
     console.log("Matriz Transpuesta:");
     console.log(matrizTranspuesta);
+    mostrarMatriz(matrizTranspuesta, "Matriz Transpuesta")
 
     console.log("Matriz Inversa:");
     console.log(MatrizInversa);
+    mostrarMatriz(MatrizInversa, "Matriz Inversa")
 
     // console.log("Matriz Cofactores:");
     // console.log(matrizCofactores);
