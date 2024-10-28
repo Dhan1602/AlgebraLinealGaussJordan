@@ -206,23 +206,25 @@ function luFactorizacion(A) {
     return { L, U };
 }
 
-// Matriz de Cofactores
-function cofactorMatrix(A) {
-    const n = A.length;
-    const cofactorMatrix = Array.from({ length: n }, () => Array(n).fill(0));
+
+// Generar la matriz de cofactores
+function generarMatrizCofactores(matriz) {
+    const n = matriz.length;
+    const matrizCofactores = Array.from({ length: n }, () => Array(n).fill(0));
 
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
-            const subMatrix = A
-                .filter((_, rowIndex) => rowIndex !== i)
-                .map(row => row.filter((_, colIndex) => colIndex !== j));
-            const detSubMatrix = determinante(subMatrix);
-            cofactorMatrix[i][j] = detSubMatrix * ((i + j) % 2 === 0 ? 1 : -1);
+            const subMatriz = matriz
+                .filter((_, filaIndex) => filaIndex !== i)
+                .map(fila => fila.filter((_, colIndex) => colIndex !== j));
+            const determinanteSubmatriz = determinante(subMatriz);
+            matrizCofactores[i][j] = determinanteSubmatriz * ((i + j) % 2 === 0 ? 1 : -1);
         }
     }
 
-    return cofactorMatrix;
+    return matrizCofactores;
 }
+
 
 
 // Matriz Transpuesta
@@ -300,15 +302,14 @@ function obtenerValores() {
     matricesLU = luFactorizacion(matriz);
     matrizTranspuesta = transponerMatriz(matriz);
     MatrizInversa = inverseMatrix(matriz);
-    matrizCofactores = cofactorMatrix(matriz);
+    matrizCofactores = generarMatrizCofactores(matriz);
     matrizAdjunta = transponerMatriz(matrizCofactores);
-    mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa)
+    mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta)
 }
 
 // Mostrar en Interfaz de Usuario ------------------------------------------------------------------------------
 
 function generarCards(mensaje) {
-    document.querySelector("#tarjetas").innerHTML = ""
     const nuevaCard = document.createElement("div");
     nuevaCard.classList.add("card");
     nuevaCard.innerHTML = "<span>" + mensaje + "</span>"
@@ -319,6 +320,7 @@ function mostrarMatriz(matrix, titulo) {
     // Crear el contenedor principal
     const matrixContainer = document.createElement('div');
     matrixContainer.classList.add('matrix-container');
+
 
     // Crear y añadir el título
     const title = document.createElement('h2');
@@ -349,13 +351,17 @@ function mostrarMatriz(matrix, titulo) {
 }
 
 function mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta) {
+    document.querySelector("#tarjetas").innerHTML = ""
     generarCards(resultadosIncognitas.estado);
+    console.log(resultadosIncognitas);
     generarCards("Determinante = " + determinanteMatriz);
     console.log("Gauss Jordan: ");
     console.log(resultadosIncognitas.matriz);
 
     for (let i = 0; i < resultadosIncognitas.soluciones.length; i++) {
         generarCards("x" + i + " = " + resultadosIncognitas.soluciones[i]);
+        console.log("x" + i + " = " + resultadosIncognitas.soluciones[i]);
+
 
     }
 
@@ -375,9 +381,9 @@ function mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, mat
     console.log(MatrizInversa);
     mostrarMatriz(MatrizInversa, "Matriz Inversa")
 
-    // console.log("Matriz Cofactores:");
-    // console.log(matrizCofactores);
+    console.log("Matriz Cofactores:");
+    console.log(matrizCofactores);
 
-    // console.log("Matriz Adjunta:");
-    // console.log(matrizAdjunta);
+    console.log("Matriz Adjunta:");
+    console.log(matrizAdjunta);
 }
