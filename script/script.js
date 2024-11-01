@@ -59,7 +59,7 @@ function crearCeldaEncabezado(texto) {
 
 document.querySelector("#matriz").addEventListener("submit", e => {
     e.preventDefault();
-    obtenerValores();
+    Calculos();
 })
 
 // ------------------------------------- Procedimientos --------------------------------------------------
@@ -269,7 +269,27 @@ function inverseMatrix(A) {
 
 // Calculo principal
 
-function obtenerValores() {
+function obtenerValores(){
+    let matriz = []
+    let matrizAumentada = []
+    for (let i = 0; i < tamanioMatriz.filas; i++) {
+        let fila = [];
+        let filaAumentada = [];
+        for (let j = 0; j < tamanioMatriz.columnas; j++) {
+            let valorInput = document.querySelector(`input[name="input_${i}_${j}"]`).value;
+            let valorNumerico = parseFloat(valorInput); // Convierte a número
+            filaAumentada.push(valorNumerico);
+            if (j < (tamanioMatriz.columnas - 1)) {
+                fila.push(valorNumerico);
+            }
+        }
+        matriz.push(fila);
+        matrizAumentada.push(filaAumentada);
+    }
+    return {matriz: matriz, matrizAumentada:matrizAumentada}
+}
+
+function Calculos() {
     let matriz = [];
     let matrizAumentada = [];
     let determinanteMatriz = 0;
@@ -280,35 +300,25 @@ function obtenerValores() {
     let matrizCofactores = [];
     let matrizAdjunta = [];
 
-    for (let i = 0; i < tamanioMatriz.filas; i++) {
-        let fila = [];
-        let filaAumentada = [];
-        for (let j = 0; j < tamanioMatriz.columnas; j++) {
-            let valorInput = document.querySelector(`input[name="input_${i}_${j}"]`).value;
-            filaAumentada.push(valorInput);
-            if (j < (tamanioMatriz.columnas - 1)) {
-                fila.push(valorInput);
-            }
-        }
-        matriz.push(fila);
-        matrizAumentada.push(filaAumentada);
-    }
 
     // Llamado a los procedimientos
-    determinanteMatriz = determinante(matriz);
-    resultadosIncognitas = gaussJordan(matrizAumentada);
-    matricesLU = luFactorizacion(matriz);
-    matrizTranspuesta = transponerMatriz(matriz);
-    MatrizInversa = inverseMatrix(matriz);
-    matrizCofactores = cofactorMatrix(matriz);
+    matriz = obtenerValores();
+    determinanteMatriz = determinante(obtenerValores().matriz);
+    resultadosIncognitas = gaussJordan(obtenerValores().matrizAumentada);
+    matricesLU = luFactorizacion(obtenerValores().matriz);
+    matrizTranspuesta = transponerMatriz(obtenerValores().matriz);
+    MatrizInversa = inverseMatrix(obtenerValores().matriz);
+    
+    matrizCofactores = cofactorMatrix(obtenerValores().matriz);
     matrizAdjunta = transponerMatriz(matrizCofactores);
-    mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa)
+    mostrarResultados(obtenerValores().matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta)
 }
+
+
 
 // Mostrar en Interfaz de Usuario ------------------------------------------------------------------------------
 
 function generarCards(mensaje) {
-    document.querySelector("#tarjetas").innerHTML = ""
     const nuevaCard = document.createElement("div");
     nuevaCard.classList.add("card");
     nuevaCard.innerHTML = "<span>" + mensaje + "</span>"
@@ -351,12 +361,13 @@ function mostrarMatriz(matrix, titulo) {
 function mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta) {
     generarCards(resultadosIncognitas.estado);
     generarCards("Determinante = " + determinanteMatriz);
+    console.log(resultadosIncognitas.estado);
+    console.log("Determinante = " + determinanteMatriz);
     console.log("Gauss Jordan: ");
     console.log(resultadosIncognitas.matriz);
 
     for (let i = 0; i < resultadosIncognitas.soluciones.length; i++) {
         generarCards("x" + i + " = " + resultadosIncognitas.soluciones[i]);
-
     }
 
     console.log("Matriz L");
@@ -375,9 +386,11 @@ function mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, mat
     console.log(MatrizInversa);
     mostrarMatriz(MatrizInversa, "Matriz Inversa")
 
-    // console.log("Matriz Cofactores:");
-    // console.log(matrizCofactores);
+    mostrarMatriz(matrizCofactores, "Matriz Inversa")
+    console.log("Matriz Cofactores:");
+    console.log(matrizCofactores);
 
-    // console.log("Matriz Adjunta:");
-    // console.log(matrizAdjunta);
+    mostrarMatriz(matrizAdjunta, "Matriz Inversa")
+    console.log("Matriz Adjunta:");
+    console.log(matrizAdjunta);
 }
