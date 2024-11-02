@@ -60,7 +60,7 @@ function crearCeldaEncabezado(texto) {
 
 document.querySelector("#matriz").addEventListener("submit", e => {
     e.preventDefault();
-    obtenerValores();
+    Calculos();
 })
 
 // ------------------------------------- Procedimientos --------------------------------------------------
@@ -211,33 +211,23 @@ function luFactorizacion(A) {
     return { L, U };
 }
 
-
-// Generar la matriz de cofactores
-function generarMatrizCofactores(matriz) {
-    const n = matriz.length;
-    const matrizCofactores = Array.from({ length: n }, () => Array(n).fill(0));
+// Matriz de Cofactores
+function cofactorMatrix(A) {
+    const n = A.length;
+    const cofactorMatrix = Array.from({ length: n }, () => Array(n).fill(0));
 
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
-            // Generar la submatriz excluyendo la fila i y la columna j
-            const subMatriz = matriz
-                .filter((_, filaIndex) => filaIndex !== i)
-                .map(fila => fila.filter((_, colIndex) => colIndex !== j));
-
-            // Calcular el determinante del menor y aplicar el signo
-            const determinanteSubmatriz = determinante(subMatriz);
-            matrizCofactores[i][j] = determinanteSubmatriz * ((i + j) % 2 === 0 ? 1 : -1);
-
-            // Debug: Imprimir submatriz y su cofactor calculado            
-            // console.log(`Submatriz para el cofactor (${i}, ${j}):`, subMatriz);
-            // console.log(`Cofactor en posición (${i}, ${j}):`, matrizCofactores[i][j]);
+            const subMatrix = A
+                .filter((_, rowIndex) => rowIndex !== i)
+                .map(row => row.filter((_, colIndex) => colIndex !== j));
+            const detSubMatrix = determinante(subMatrix);
+            cofactorMatrix[i][j] = detSubMatrix * ((i + j) % 2 === 0 ? 1 : -1);
         }
     }
 
-    return matrizCofactores;
+    return cofactorMatrix;
 }
-
-
 
 
 // Matriz Transpuesta
@@ -284,8 +274,28 @@ function inverseMatrix(A) {
 
 // Calculo principal
 
-function obtenerValores() {
-    let matrizOriginal = [];
+function obtenerValores(){
+    let matriz = []
+    let matrizAumentada = []
+    for (let i = 0; i < tamanioMatriz.filas; i++) {
+        let fila = [];
+        let filaAumentada = [];
+        for (let j = 0; j < tamanioMatriz.columnas; j++) {
+            let valorInput = document.querySelector(`input[name="input_${i}_${j}"]`).value;
+            let valorNumerico = parseFloat(valorInput); // Convierte a número
+            filaAumentada.push(valorNumerico);
+            if (j < (tamanioMatriz.columnas - 1)) {
+                fila.push(valorNumerico);
+            }
+        }
+        matriz.push(fila);
+        matrizAumentada.push(filaAumentada);
+    }
+    return {matriz: matriz, matrizAumentada:matrizAumentada}
+}
+
+function Calculos() {
+    let matriz = [];
     let matrizAumentada = [];
     let determinanteMatriz = 0;
     let resultadosIncognitas = {};
@@ -295,41 +305,21 @@ function obtenerValores() {
     let matrizCofactores = [];
     let matrizAdjunta = [];
 
-    for (let i = 0; i < tamanioMatriz.filas; i++) {
-        let fila = [];
-        let filaAumentada = [];
-        for (let j = 0; j < tamanioMatriz.columnas; j++) {
-            let valorInput = parseFloat(document.querySelector(`input[name="input_${i}_${j}"]`).value);
-
-            filaAumentada.push(valorInput);
-            if (j < (tamanioMatriz.columnas - 1)) {
-                fila.push(valorInput);
-            }
-        }
-        matrizOriginal.push(fila);
-        
-        matrizAumentada.push(filaAumentada);
-        // console.log(fila + "fila");
-        // console.log(matrizOriginal);
-    }
-
-    // console.log(matriz);
-    // console.log(matrizAumentada);
-    
-    
 
     // Llamado a los procedimientos
-
+    matriz = obtenerValores();
+    determinanteMatriz = determinante(obtenerValores().matriz);
+    resultadosIncognitas = gaussJordan(obtenerValores().matrizAumentada);
+    matricesLU = luFactorizacion(obtenerValores().matriz);
+    matrizTranspuesta = transponerMatriz(obtenerValores().matriz);
+    MatrizInversa = inverseMatrix(obtenerValores().matriz);
     
-    determinanteMatriz = determinante(matrizOriginal);
-    resultadosIncognitas = gaussJordan(matrizAumentada);
-    matricesLU = luFactorizacion(matrizOriginal);
-    matrizTranspuesta = transponerMatriz(matrizOriginal);
-    MatrizInversa = inverseMatrix(matrizOriginal);    
-    matrizCofactores = generarMatrizCofactores(matrizOriginal);
+    matrizCofactores = cofactorMatrix(obtenerValores().matriz);
     matrizAdjunta = transponerMatriz(matrizCofactores);
-    mostrarResultados(matrizOriginal, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta)
+    mostrarResultados(obtenerValores().matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta)
 }
+
+
 
 // Mostrar en Interfaz de Usuario ------------------------------------------------------------------------------
 
@@ -344,7 +334,6 @@ function mostrarMatriz(matrix, titulo) {
     // Crear el contenedor principal
     const matrixContainer = document.createElement('div');
     matrixContainer.classList.add('matrix-container');
-
 
     // Crear y añadir el título
     const title = document.createElement('h2');
@@ -375,31 +364,16 @@ function mostrarMatriz(matrix, titulo) {
 }
 
 function mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, matricesLU, matrizTranspuesta, MatrizInversa, matrizCofactores, matrizAdjunta) {
-    document.querySelector("#tarjetas").innerHTML = ""
-
-    // Mostrar soluciones (infinita, sistema inconsistente y unica solucion)
     generarCards(resultadosIncognitas.estado);
-    console.log(resultadosIncognitas);
-
-    let filas = matriz.length;
-    let columnas = matriz[0].length;
-    
-    if(filas == columnas){
-        generarCards("La matriz tiene inversa (filas = columnas)");
-        console.log("La matriz tiene inversa (filas = columnas)");
-    } else{
-        generarCards("La matriz no tiene inversa (filas != columnas)");
-        console.log("La matriz no tiene inversa (filas != columnas)");
-    }
-
     generarCards("Determinante = " + determinanteMatriz);
+    console.log(resultadosIncognitas.estado);
+    console.log("Determinante = " + determinanteMatriz);
     console.log("Gauss Jordan: ");
     console.log(resultadosIncognitas.matriz);
 
     // Incognitas
     for (let i = 0; i < resultadosIncognitas.soluciones.length; i++) {
         generarCards("x" + i + " = " + resultadosIncognitas.soluciones[i]);
-        console.log("x" + i + " = " + resultadosIncognitas.soluciones[i]);
     }
 
     console.log("Matriz L");
@@ -418,10 +392,11 @@ function mostrarResultados(matriz, determinanteMatriz, resultadosIncognitas, mat
     console.log(MatrizInversa);
     mostrarMatriz(MatrizInversa, "Matriz Inversa")
 
+    mostrarMatriz(matrizCofactores, "Matriz Inversa")
     console.log("Matriz Cofactores:");
     console.log(matrizCofactores);
-    mostrarMatriz(matrizCofactores, "Matriz Cofactores")
-    
+
+    mostrarMatriz(matrizAdjunta, "Matriz Inversa")
     console.log("Matriz Adjunta:");
     console.log(matrizAdjunta);
     mostrarMatriz(matrizAdjunta, "Matriz Adjunta")
